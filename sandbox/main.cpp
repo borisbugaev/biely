@@ -8,7 +8,6 @@
 /*
 Program to solve "NYT Spelling Bee" word puzzle relatively fast
 TODO:
--resolve indeterminism (lmao)
 -dictionary candidate input
 -file output
 */
@@ -71,9 +70,9 @@ Else returns 0
 uint32_t map_compare(uint32_t key_map, uint32_t candidate_map)
 {
 	const uint32_t key_index{key_map >> MAP_OFST}; //this is "destructive" but it doesn't matter
-	const uint32_t key_reference{(ONE_BIT << key_index)};
+	const uint32_t key_reference{(ONE_BIT << (key_index - ONE_BIT))};
 	const uint32_t has_key{(candidate_map & key_reference) / key_reference}; //effectively bool
-	const uint32_t is_submap{candidate_map / (key_map | candidate_map)};
+	const uint32_t is_submap{key_map / (key_map | candidate_map)};
 	return (candidate_map * has_key * is_submap) / candidate_map;
 }
 
