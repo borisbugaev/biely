@@ -1,15 +1,22 @@
 #include <iostream>
+#include <fstream>
 #include <cstdint>
 #include <string>
+#include <cstring>
 #include <string_view>
 #include <bitset>
-#define LIVE_TEST
+#include <chrono>
 
 /*
 Program to solve "NYT Spelling Bee" word puzzle relatively fast
+There exists some issue that prevents execution in vscode
+However, everything seems to work outside the ide
+Current runtime ~50ms
 TODO:
--dictionary candidate input
--file output
+--fix vscode exec
+--improve input (currently parameters are hardcoded which is stupid)
+--dictionary pruning?
+--make it faster overall
 */
 
 const uint32_t ASC_OFST{96};
@@ -78,23 +85,45 @@ uint32_t map_compare(uint32_t key_map, uint32_t candidate_map)
 
 int main() 
 {
-	#ifdef LIVE_TEST
-	std::cout << "Key Character: ";
-	char key_char{};
-	std::cin >> key_char;
-	std::cout << "\nAll characters: ";
-	std::string valid_chars{};
-	std::cin >> valid_chars;
+	#ifdef UNIT_TEST
+	char key_char{'a'};
+	std::string valid_chars{"tempica"};
 	std::string_view valid_view{valid_chars};
 	uint32_t init_map{map_str(valid_view)};
 	uint32_t k_map{map_key_char(key_char, init_map)};
-	std::cout << "Enter candidate word: ";
-	std::string candidate{};
-	std::cin >> candidate;
+	std::string candidate{"a"};
 	std::string_view c_view{candidate};
-	uint32_t cmap{map_str(c_view)};
 	std::cout << map_compare(k_map, map_str(c_view));
 	#endif
+	auto start = std::chrono::steady_clock::now();
+	const char key_char{'h'};
+	const std::string valid_chars{"lghtiny"};
+	const std::string_view valid_view{valid_chars};
+	const uint32_t init_map{map_str(valid_view)};
+	const uint32_t k_map{map_key_char(key_char, init_map)};
+	
+	std::ifstream file("word_list.txt");
+	if (file.is_open()) {
+        std::cout << "File opened successfully." << std::endl;
+      } else {
+        std::cerr << "Error opening file." << std::endl;
+        std::cerr << strerror(errno) << std::endl;
+      }
+	std::ofstream out_file("valid_words.txt");
+	std::string line{};
+	while (std::getline(file, line))
+	{
+		std::string_view candidate{line};
+		if (map_compare(k_map, map_str(candidate)) && candidate.length() > 3)
+		{
+			out_file << candidate << '\n';
+		}
+	}
+	file.close();
+	out_file.close();
+	
+	auto end = std::chrono::steady_clock::now();
+	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
 	// 
 	return 0;
 }
