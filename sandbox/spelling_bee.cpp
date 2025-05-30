@@ -20,6 +20,7 @@ TODO:
 */
 
 const uint32_t ASC_OFST{96};
+const uint32_t TO_LCASE{32};
 const uint32_t MAP_OFST{26};
 const uint32_t ONE_BIT{1};
 
@@ -41,7 +42,24 @@ Each unique value l returns bitmap as ui32
 */
 uint32_t map_char(char wc)
 {
-	return (ONE_BIT << (MAP_OFST - (uint32_t(wc) - ASC_OFST)));
+	if (uint32_t(wc) < (ASC_OFST + ONE_BIT) ||
+		uint32_t(wc) > (ASC_OFST + MAP_OFST))
+		{
+			if (uint32_t(wc) >= uint32_t('A') ||
+				uint32_t(wc) <= uint32_t('Z'))
+				{
+					char kc{char(uint32_t(wc) + TO_LCASE)};
+					return map_key_char(kc, map_char(kc));
+				}
+			else
+			{
+				return 0;
+			}
+		}
+	else 
+	{
+		return (ONE_BIT << (MAP_OFST - (uint32_t(wc) - ASC_OFST)));
+	}
 }
 
 /*
@@ -83,32 +101,28 @@ uint32_t map_compare(uint32_t key_map, uint32_t candidate_map)
 	return (candidate_map * has_key * is_submap) / candidate_map;
 }
 
-int main() 
+int main(int argc, char* argv[]) 
 {
-	#ifdef UNIT_TEST
-	char key_char{'a'};
-	std::string valid_chars{"tempica"};
-	std::string_view valid_view{valid_chars};
-	uint32_t init_map{map_str(valid_view)};
-	uint32_t k_map{map_key_char(key_char, init_map)};
-	std::string candidate{"a"};
-	std::string_view c_view{candidate};
-	std::cout << map_compare(k_map, map_str(c_view));
-	#endif
+	std::string kinput{};
+	if (argv[1])
+	{
+		kinput = argv[1];
+	}
+	else
+	{
+		std::cin >> kinput;
+	}
+
 	auto start = std::chrono::steady_clock::now();
-	const char key_char{'h'};
-	const std::string valid_chars{"lghtiny"};
-	const std::string_view valid_view{valid_chars};
-	const uint32_t init_map{map_str(valid_view)};
-	const uint32_t k_map{map_key_char(key_char, init_map)};
+	const std::string_view k_view{kinput};
+	const uint32_t k_map{map_str(k_view)};
 	
 	std::ifstream file("word_list.txt");
-	if (file.is_open()) {
-        std::cout << "File opened successfully." << std::endl;
-      } else {
+	if (!file.is_open())
+	{
         std::cerr << "Error opening file." << std::endl;
         std::cerr << strerror(errno) << std::endl;
-      }
+    }
 	std::ofstream out_file("valid_words.txt");
 	std::string line{};
 	while (std::getline(file, line))
