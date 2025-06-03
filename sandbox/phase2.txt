@@ -1,7 +1,0 @@
-goals for next hive-phase:
---generate concat dictionary (preferably fast)
---generate pruned dictionary (will be gradual)
-Notes:
---pruned dictionary will be based on valid nyt spelling bee words, more or less
---nyt spelling bee allows pruning of 7 permutations/week
---overlap between permutations??
